@@ -22,7 +22,8 @@ https://coolors.co/c2f970-44344f-564d80-98a6d4-d3fcd5
 }  
 
 body,html {
-/*    padding: 0;
+    /* Use flex layout to push footer to bottom of page */
+    padding: 0;
     margin: 0;
     min-height: 100%;
 
@@ -30,16 +31,11 @@ body,html {
     flex-direction: column;
     box-sizing: border-box;
     flex-grow: 1;
-*/
+
     color: var(--dark_color);
     background-color: var(--color_1);
     font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
 }
-
-/*.main-heading, footer {
-    flex-grow: 0;
-    flex-shrink: 0;
-}*/
 
 .main-heading {
     border: 10px solid var(--color_3);
@@ -55,15 +51,10 @@ header {
     margin: 0px;
 }
 
-/*main {
-    padding: 10px;
+/* Ensure main pushes footer to bottom of page */
+main {
     flex-grow: 1;
-    min-height: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    justify-content: space-evenly;
-}*/
+}
 
 footer {
     text-align: center;
@@ -98,27 +89,28 @@ a:hover {
 }
 
 
-#main-content {
+.main-content-box {
     background-color: var(--color_2);
     border: 10px var(--color_3);
     border-style: inset;
-    margin: 50px;
-    padding: 20px;
-}
-/*
-.nav-item:nth-child(even) {
-    background-color: var(--color_2_5);
-}*/
-
-/* Style Navigation Menu */
-/*.nav-container {
-    list-style-type: none;
-}
-
-.nav-link {
-    display: inline;
-    margin: 0px;
+    margin: 20px 0px;
     padding: 10px;
-    background-color: var(--light_color);
-    border: 2px solid var(--dark_color);
-}*/
+}
+
+#jp-word-container {
+    border: 5px solid var(--color_2_5);
+    margin: 5% 10%;
+    padding: 10%;
+}
+
+#jp-word-para {
+    font-size: 3em;
+}
+
+#jp-word-meaning, #jp-conjugation-type, #conjugate-header {
+    font-size: 2em;
+}
+
+input[type="checkbox"] {
+    margin: 3px;
+}
