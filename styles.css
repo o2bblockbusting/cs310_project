@@ -114,3 +114,11 @@ a:hover {
 input[type="checkbox"] {
     margin: 3px;
 }
+
+.examples-container p:first-of-type {
+    font-size: 1.3em;
+}
+
+.examples-container section {
+    margin: 20px;
+}

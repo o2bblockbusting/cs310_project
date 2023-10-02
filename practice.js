@@ -6,7 +6,7 @@
 (function () {
     "use strict";
 
-    let settings = ["polite","past","stem","te-form","command","causative","passive","accidental","must do","potential","include irregulars"];
+    let settings = ["polite","volitional","te-form","past","command","potential","causative","passive","unintended","must do","include irregulars"];
 
 
     window.addEventListener("load",init);
