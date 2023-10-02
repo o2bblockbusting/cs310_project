@@ -3,6 +3,6 @@ Project for CS310 Web Development. A website that helps a user practice their Ja
 ### Tools Used
 * Bootstrap 5.3.2
 * JQuery 3.7.1
-* coolers.co
+* [coolors.co](https://coolors.co/)
 
 ![Website page layout](media/CS310%20Site%20Layout.png "Website page layout")
