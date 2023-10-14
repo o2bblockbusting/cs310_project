@@ -1,0 +1,24 @@
+Japanese Verbs Database design (if no suitable database can be found)
+/// VERBS TABLE ///
+PK NUMBER verb_id
+STRING verb_plain - Japanese verb in plain form ending in 'u' sound
+BOOL isRuVerb - true means it's a 'ru' verb, false means it's a 'u' verb
+STRING kanji_reading - hiragana for reading of kanji; blank if no kanji present
+STRING okurigana - hirargana that follows the kanji
+
+
+/// CONJUGATIONS TABLE ///
+PK NUMBER conjugation_id 
+STRING conjugation_name - polite, past, stem...
+STRING base_conjugation - what conjugation must be done first in order to do this conjugation
+STRING drop_chars - characters to drop/change
+STRING add_chars - characters to add
+
+
+
+/// IRREGULARS TABLE ///
+FK NUMBER verb_id - from VERBS table
+FK NUMBER conjugation_id - from CONJUGATIONS table
+STRING conjugated_verb
+STRING kanji_reading - hiragana for reading of kanji; blank if no kanji present
+STRING okurigana - hirargana that follows the kanji
