@@ -6,14 +6,15 @@
 (function () {
     "use strict";
 
-    let settings = ["polite","volitional","te-form","past","command","potential","causative","passive","unintended","must do","include irregulars"];
-
+    let settings = ["stem","negative","polite","volitional","te-form","past","command","potential","causative","passive","unintended","must do"];
+    const BASE_URL = "http://localhost:8000/";
 
     window.addEventListener("load",init);
 
     //Run setup on page load
     function init() {
         generateSettings();
+        getRandomVerb();
     }
 
 
@@ -37,7 +38,71 @@
         });
     }
 
+    function getRandomVerb() {
+        let url = BASE_URL + "verbs?type=random";
+
+        fetch(url, {method: 'POST'})
+            .then(checkStatus)
+            .then((response) => response.json())
+            .then((resp) => {
+                console.log(conjugate(resp[0], 'te-form'));
+                return resp;
+            }) 
+            .catch(handleError);
+    }
+
+    function conjugate(verb, form) {
+        console.log(verb);
+        switch(form) {
+            case 'te-form':
+                if(verb.is_ru_verb) {
+                    return verb.verb_plain.slice(0,-1) + 'て';
+                }
+                else {
+                    const teFormMap = {
+                        'す': 'して',
+                        'く': 'いて',
+                        'ぐ': 'いで',
+                        'む': 'んで',
+                        'ぶ': 'んで',
+                        'ぬ': 'んで',
+                        'る': 'って',
+                        'う': 'って',
+                        'つ': 'って'
+                    };
+                    return verb.verb_plain.slice(0,-1) + teFormMap[verb.verb_plain.slice(-1)];
+                }
+            default:
+                return "ERROR: conjugation type "+form+" not recognized";
+        }
+    }
+
     // MODULE GLOBAL FUNCTIONS
+    /**
+     * Helper function to return the response's result text if successful, otherwise
+     * returns the rejected Promise result with an error status and corresponding text
+     * @param {object} response - response to check for success/error
+     * @return {object} - valid response if response was successful, otherwise rejected
+     *                    Promise result
+     */
+    function checkStatus(response) {
+        if (!response.ok) {
+            throw Error("Error in request: " + response.statusText);
+        }
+        return response; // a Response object
+    }
+
+    /**
+     *  Handles ajax errors by alerting the user and printing the promise to the console
+     * @param (Promise) promise - status of request
+     */
+    function handleError(promise) {
+        if(!promise.ok) {
+            qs("main").innerHTML = "Failed to make API request. See console for details." + qs("main").innerHTML;
+            console.log(promise);
+        }
+    }
+
     /**
      * Alias for document.getElementById()
      * @param {string} id of element
