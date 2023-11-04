@@ -122,3 +122,10 @@ input[type="checkbox"] {
 .examples-container section {
     margin: 20px;
 }
+
+.error_msg {
+    border: 2px solid black;
+    color: #4d0606;
+    background-color: white;
+    text-align: center;
+}
