@@ -7,7 +7,7 @@ const sqlite3 = require('sqlite3');
 const sqlite = require('sqlite');
 
 const DB_PATH = "jp_verbs.db";
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT);
 
 app.use(express.static('public'));
@@ -18,6 +18,17 @@ app.use(express.urlencoded({ extended: true }));
 app.post('/verbs', async function (req, res) {
     let ret = await getVerbs(req.query.type ? req.query.type : 'all');
     res.json(ret);
+});
+
+app.post('/irregulars', async function (req, res) {
+    // verb_id cannot be omitted but conjugation_name can be omitted to fetch all irregulars for one verb
+    if(req.query.verb_id) {
+        let ret = await findIrregular(req.query.verb_id, req.query.conjugation_name);
+        res.json(ret);
+    }
+    else {
+        res.status(400).send("Error: Must specify verb_id to get irregulars list");
+    }
 });
 
 app.get("*", (req, res) => {
@@ -39,6 +50,7 @@ async function getDBConnection() {
 
 /**
  * Retrieves all verb data from the database
+ * However, if queryType is random, returns just 1 random verb
  * @returns {object} - The questions records stored in the database.
  */
 async function getVerbs(queryType) {
@@ -56,5 +68,38 @@ async function getVerbs(queryType) {
     const rows = await db.all(query);
     await db.close(); // close the database connection
 
-    return rows;
+    return queryType == 'random' ? rows[0] : rows;
+}
+
+/**
+ * Queries the database and returns data regarding an irregular form if found
+ * If the conjugation_name is omitted, all irregulars for that verb are returned in an array
+ * @param {Number} verbId 
+ * @param {string} conjugationName - optional
+ */
+async function findIrregular(verbId, conjugationName) {
+    const db = await getDBConnection();
+    
+    if(conjugationName) {
+        query += "SELECT * FROM irregulars WHERE verb_id=@0 AND conjugation_name=@1 LIMIT 1";
+        const data = await db.get(query, [verbId, conjugationName]);
+        await db.close();
+        
+        return data ? data : {};
+    }
+
+    let query = "SELECT * FROM irregulars WHERE verb_id=@0;";
+    const data = await db.all(query, [verbId]);
+    await db.close();
+
+    if(!data)
+        data = {};
+
+    console.log(data);
+    
+    let reformattedData = {};
+    for(const item of data) {
+        reformattedData[item.conjugation_name] = item;
+    }
+    return reformattedData;
 }
