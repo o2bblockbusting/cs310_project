@@ -107,6 +107,24 @@ a:hover {
     font-size: 3em;
 }
 
+#jp-word-para a {
+    text-decoration: none;
+}
+
+#answer-result {
+    font-size: 1.5em;
+    margin: 10px;
+    border: 2px solid black;
+}
+
+.correct {
+    color: green;
+}
+
+.incorrect {
+    color: red;
+}
+
 #jp-word-meaning, #jp-conjugation-type, #conjugate-header {
     font-size: 2em;
 }
@@ -128,4 +146,8 @@ input[type="checkbox"] {
     color: #4d0606;
     background-color: white;
     text-align: center;
+}
+
+.hidden {
+    display: none;
 }

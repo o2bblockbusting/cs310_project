@@ -8,6 +8,8 @@
 
     let settings = ["stem","negative","polite","volitional","te","past","command","potential","causative","passive","unintended","must do"];
     const BASE_URL = "http://localhost:8080/";
+    let answer;
+    let answerChecked = false;
 
 
     const charConversions = {
@@ -34,8 +36,22 @@
     function init() {
         generateSettings();
         getRandomVerb();
+        id("submitConjugation").addEventListener("click",submitButtonHandler);
     }
 
+
+    function submitButtonHandler() {
+        if(answerChecked) {
+            id("answer-result").classList.add("hidden");
+            id("submitConjugation").innerText = "Submit";
+            id("user-conjugation").value = "";
+            getRandomVerb();
+        }
+        else {
+            checkAnswer();
+        }
+        answerChecked = !answerChecked;
+    }
 
     /**
      * Creates the checkboxes for all the different types of settings
@@ -64,11 +80,11 @@
     function getRandomConjugation() {
         let activeConjugations = [];
         
-        settings.foreach((grammarForm) => {
-            if(id("checkbox_"+grammarForm).checked) {
-                activeConjugations.add(grammarForm);
+        for(let i=0; i<settings.length; i++) {
+            if(id("checkbox_"+settings[i]).checked) {
+                activeConjugations.push(settings[i]);
             }
-        });
+        }
 
         if(activeConjugations.length == 0) {
             return "plain";
@@ -98,16 +114,28 @@
      * @param {object} verb - Japanese verb + metadata
      */
     function setupPracticeProblem(verb) {
-        if(verb.kanji_reading.length > 0) {
-            let kanjiOnly = verb.form.slice(0,-verb.okurigana.length);
-            id("jp-word-para").innerHTML = "<ruby>" + kanjiOnly + "<rt>" + verb.kanji_reading + "</rt></ruby>" + verb.okurigana;
-        }
-        else {
-            id("jp-word-para").innerHTML = verb.form;
-        }
-
+        let jishoLink = "<a target='_blank' href='https://jisho.org/search/" + verb.form + "' title='Click to see this verb on jisho'>";
+        
+        id("jp-word-para").innerHTML = jishoLink + verbToHTML(verb) + "</a>";
         id("jp-word-meaning").innerText = verb.meaning;
-        conjugate(verb, 'stem');
+        
+        let conjugation = getRandomConjugation();
+        id("jp-conjugation-type").innerText = "TO " + conjugation.toUpperCase() + " FORM";
+        conjugate(verb, conjugation, false, false, false);
+    }
+
+    function checkAnswer() {
+        let userAnswer = id('user-conjugation').value;
+        let correctStr = "incorrect";
+
+        if(userAnswer == answer.form || userAnswer == (answer.kanji_reading + answer.okurigana)) {
+            correctStr = 'correct';
+        }
+        id("answer-result").innerHTML = "<span class='"+correctStr+"'>"+correctStr.toUpperCase()+"</span><BR/>The correct answer is " + verbToHTML(answer);
+        id("answer-result").classList.remove("hidden");
+
+        id("submitConjugation").innerText = "Next";
+        id("submitConjugation")
     }
 
     /**
@@ -128,8 +156,8 @@
             .then(checkStatus)
             .then((response) => response.json())
             .then((resp) => {
-                console.log(resp);
-                console.log(finishConjugation(verb, form, resp, useNegative, usePolite, usePast));
+                answer = finishConjugation(verb, form, resp, useNegative, usePolite, usePast);
+                console.log(answer);
                 return resp;
             })
             .catch(handleError);
@@ -149,7 +177,6 @@
      * @returns {object} - conjugated Japanese verb plus metadata
      */
     function finishConjugation(verb, gramForm, irregularForms, useNegative, usePolite, usePast) {
-        console.log(irregularForms);
         verb.conjugation_name = gramForm;
 
         if(irregularForms[gramForm] && irregularForms[gramForm].verb_id && !usePolite) { 
@@ -157,24 +184,33 @@
         }
 
         switch(gramForm) {
-            /////////////////////////// PLAIN-FORM ///////////////////////////
             case 'plain':
                 return toPlainVariant(verb, irregularForms, useNegative, usePolite, usePast);
 
-            /////////////////////////// TE-FORM ///////////////////////////
             case 'te':
                 return toTeForm(verb, irregularForms, useNegative);
-                //break;
-            /////////////////////////// STEM ///////////////////////////
+
             case 'stem':
                 return toStemForm(verb);
-                //break;
-            /////////////////////////// VOLITIONAL ///////////////////////////
+
             case 'volitional':
                 return toVolitionalForm(verb, irregularForms, usePolite);
                 //break;
-            
+            /////////////////////////// COMMAND ///////////////////////////  POSTPONED
+
+            case 'potential':
+                return toPotentialForm(verb);
+
+            case 'causative':
+                return toCausativeForm(verb);
+
+            case 'passive':
+                return toPassiveForm(verb);
+            /////////////////////////// UNINTENDED ///////////////////////////
+
+            /////////////////////////// MUST DO /////////////////////////// POSTPONED
             default:
+                console.log("ERROR: conjugation type "+gramForm+" not recognized");
                 return {error:"ERROR: conjugation type "+gramForm+" not recognized"};
         }
         return verb;
@@ -208,7 +244,7 @@
      * @returns {object} - conjugated Japanese verb plus metadata
      */
     function toPlainVariant(verb, irregularForms, useNegative, usePolite, usePast) {
-        if(verb.is_ru_verb === NULL) {
+        if(verb.is_ru_verb === null) {
             return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
         }
 
@@ -278,7 +314,7 @@
             }
         }
 
-        verb.is_ru_verb = NULL;
+        verb.is_ru_verb = null;
         return verb;
     }
 
@@ -300,7 +336,7 @@
         }
 
         // Positive
-        if(verb.is_ru_verb === NULL) {
+        if(verb.is_ru_verb === null) {
             return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
         }
 
@@ -349,6 +385,93 @@
         }
         verb.is_ru_verb = null;
         return verb;
+    }
+
+    /**
+     * Conjugates a verb from plain form to potential form
+     * @param {object} verb - Japanese verb plus metadata
+     * @returns {object} - conjugated verb
+     */
+    function toPotentialForm(verb) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+
+        if(verb.is_ru_verb) {
+            verb.form = verb.form.slice(0,-1) + 'られる';
+            verb.okurigana = verb.okurigana.slice(0,-1) + 'られる';
+        }
+        else {
+            let ending =  charConversions.e[verb.form.slice(-1)] + 'る';
+            verb.form = verb.form.slice(0,-1) + ending;
+            verb.okurigana = verb.okurigana.slice(0,-1) + ending;
+        }
+
+        verb.is_ru_verb = true;
+        return verb;
+    }
+
+    /**
+     * Conjugates a verb from plain form to causative form
+     * @param {object} verb - Japanese verb plus metadata
+     * @returns {object} - conjugated verb
+     */
+    function toCausativeForm(verb) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+
+        if(verb.is_ru_verb) {
+            verb.form = verb.form.slice(0,-1) + 'させる';
+            verb.okurigana = verb.okurigana.slice(0,-1) + 'させる';
+        }
+        else {
+            let ending =  charConversions.a[verb.form.slice(-1)] + 'せる';
+            verb.form = verb.form.slice(0,-1) + ending;
+            verb.okurigana = verb.okurigana.slice(0,-1) + ending;
+        }
+
+        verb.is_ru_verb = true;
+        return verb;
+    }
+
+    /**
+     * Conjugates a verb from plain form to passive form
+     * @param {object} verb - Japanese verb plus metadata
+     * @returns {object} - conjugated verb
+     */
+    function toPassiveForm(verb) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+
+        if(verb.is_ru_verb) {
+            verb.form = verb.form.slice(0,-1) + 'られる';
+            verb.okurigana = verb.okurigana.slice(0,-1) + 'られる';
+        }
+        else {
+            let ending =  charConversions.a[verb.form.slice(-1)] + 'れる';
+            verb.form = verb.form.slice(0,-1) + ending;
+            verb.okurigana = verb.okurigana.slice(0,-1) + ending;
+        }
+
+        verb.is_ru_verb = true;
+        return verb;
+    }
+
+    /**
+     * Takes a verb and annotates its reading using the ruby tag if it contains kanji
+     * @param {object} verb
+     * @returns {string} html string containing ruby annotations
+     */
+    function verbToHTML(verb) {
+        if(verb.kanji_reading.length > 0) {
+            let kanjiOnly = verb.form.slice(0,-verb.okurigana.length);
+            return "<ruby>" + kanjiOnly + "<rt>" + verb.kanji_reading + "</rt></ruby>" + verb.okurigana;
+        }
+        else {
+            return verb.form;
+        }
     }
 
     // MODULE GLOBAL FUNCTIONS
