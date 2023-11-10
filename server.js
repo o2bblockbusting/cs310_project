@@ -81,7 +81,7 @@ async function findIrregular(verbId, conjugationName) {
     const db = await getDBConnection();
     
     if(conjugationName) {
-        query += "SELECT * FROM irregulars WHERE verb_id=@0 AND conjugation_name=@1 LIMIT 1";
+        let query = "SELECT * FROM irregulars WHERE verb_id=@0 AND conjugation_name=@1 LIMIT 1";
         const data = await db.get(query, [verbId, conjugationName]);
         await db.close();
         

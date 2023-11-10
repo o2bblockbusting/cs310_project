@@ -6,7 +6,7 @@
 (function () {
     "use strict";
 
-    let settings = ["stem","negative","polite","volitional","te","past","command","potential","causative","passive","unintended","must do"];
+    let settings = ["plain","stem","negative","polite","volitional","te","past","command","potential","causative","passive","unintended","must do"];
     const BASE_URL = "http://localhost:8080/";
     let answer;
     let answerChecked = false;
@@ -54,6 +54,18 @@
     }
 
     /**
+     * Called whenever the state of any checkbox is changed
+     * Ensures that at least one conjugation type is selected at all times
+     */
+    function checkboxEventHandler() {
+        if(this.checked) {
+            return;
+        } else {
+            //TODO
+        }
+    }
+
+    /**
      * Creates the checkboxes for all the different types of settings
      */
     function generateSettings() {
@@ -64,8 +76,13 @@
             
             check.type = "checkbox";
             check.id = "checkbox_"+setting;
+            check.addEventListener("change",checkboxEventHandler);
             label.innerHTML = setting.toUpperCase();
             label.htmlFor = check.id;
+
+            if(setting == "plain") {
+                check.checked = true;
+            }
 
             settingsContainer.appendChild(check);
             settingsContainer.appendChild(label);
@@ -465,7 +482,7 @@
      * @returns {string} html string containing ruby annotations
      */
     function verbToHTML(verb) {
-        if(verb.kanji_reading.length > 0) {
+        if(verb.kanji_reading && verb.kanji_reading.length > 0) {
             let kanjiOnly = verb.form.slice(0,-verb.okurigana.length);
             return "<ruby>" + kanjiOnly + "<rt>" + verb.kanji_reading + "</rt></ruby>" + verb.okurigana;
         }
