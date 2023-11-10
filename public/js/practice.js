@@ -37,6 +37,9 @@
         generateSettings();
         getRandomVerb();
         id("submitConjugation").addEventListener("click",submitButtonHandler);
+        id("conjugation-form").addEventListener("submit",(e) => {
+            e.preventDefault();
+        });
     }
 
 
@@ -117,7 +120,7 @@
     function getRandomVerb() {
         let url = BASE_URL + "verbs?type=random";
 
-        fetch(url, {method: 'POST'})
+        fetch(url)
             .then(checkStatus)
             .then((response) => response.json())
             .then(setupPracticeProblem) 
@@ -168,8 +171,11 @@
     function conjugate(verb, form, useNegative, usePolite, usePast) {
         console.log(verb);
 
-        let url = BASE_URL + "irregulars?verb_id=" + verb.verb_id;
-        fetch(url, {method: 'POST'})
+        let url = BASE_URL + "irregulars";//?verb_id=" + verb.verb_id;
+        let formData = new FormData();
+        formData.append("verb_id", verb.verb_id);
+
+        fetch(url, {method: 'POST', body: formData})
             .then(checkStatus)
             .then((response) => response.json())
             .then((resp) => {

@@ -60,7 +60,7 @@ VALUES
 INSERT INTO irregulars(verb_id, conjugation_name, form, kanji_reading, okurigana, is_ru_verb)
 VALUES
     (1,'stem','し','','し',NULL),
-    (1,'te','して','して','',NULL),
+    (1,'te','して','','して',NULL),
     (1,'volitional','しよう','','しよう',NULL),
     (1,'potential','できる','','できる',1),
     (1,'causative','させる','','させる',1),

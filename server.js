@@ -5,6 +5,7 @@ const express = require('express');
 const app = express();
 const sqlite3 = require('sqlite3');
 const sqlite = require('sqlite');
+const multer = require('multer');
 
 const DB_PATH = "jp_verbs.db";
 const PORT = process.env.PORT || 8080;
@@ -13,17 +14,18 @@ app.listen(PORT);
 app.use(express.static('public'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(multer().none());
 
 // API for javascript
-app.post('/verbs', async function (req, res) {
+app.get('/verbs', async function (req, res) {
     let ret = await getVerbs(req.query.type ? req.query.type : 'all');
     res.json(ret);
 });
 
 app.post('/irregulars', async function (req, res) {
     // verb_id cannot be omitted but conjugation_name can be omitted to fetch all irregulars for one verb
-    if(req.query.verb_id) {
-        let ret = await findIrregular(req.query.verb_id, req.query.conjugation_name);
+    if(req.body.verb_id) {
+        let ret = await findIrregular(req.body.verb_id, req.body.conjugation_name);
         res.json(ret);
     }
     else {
@@ -94,8 +96,6 @@ async function findIrregular(verbId, conjugationName) {
 
     if(!data)
         data = {};
-
-    console.log(data);
     
     let reformattedData = {};
     for(const item of data) {
