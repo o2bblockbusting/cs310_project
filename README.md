@@ -14,6 +14,7 @@ Project for CS310 Web Development. A website that helps a user practice their Ja
 * Express
 * Sqlite
 * Sqlite3
+* Multer
 * Nodemon
 
 ### Setup
@@ -30,6 +31,8 @@ Project for CS310 Web Development. A website that helps a user practice their Ja
 * The verbs table contains all the necessary components to fill in the practice page with information, and also has extra metadata required for conjugations
 * The irregulars table has irregular conjugations of verbs in the verbs table, and the two are linked by the verb_id
 * See the "database_sql.sql" file for more information
+
+![1699669603045](media/DatabaseERD.png "Database Entity Relationship Diagram")
 
 ### Server-Side API
 

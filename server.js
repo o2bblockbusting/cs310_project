@@ -18,18 +18,28 @@ app.use(multer().none());
 
 // API for javascript
 app.get('/verbs', async function (req, res) {
-    let ret = await getVerbs(req.query.type ? req.query.type : 'all');
-    res.json(ret);
+    try {
+        let ret = await getVerbs(req.query.type ? req.query.type : 'all');
+        res.json(ret);
+    }
+    catch(e) {
+        res.status(500).send("Internal server error");
+    }
 });
 
 app.post('/irregulars', async function (req, res) {
-    // verb_id cannot be omitted but conjugation_name can be omitted to fetch all irregulars for one verb
-    if(req.body.verb_id) {
-        let ret = await findIrregular(req.body.verb_id, req.body.conjugation_name);
-        res.json(ret);
+    try {
+        // verb_id cannot be omitted but conjugation_name can be omitted to fetch all irregulars for one verb
+        if(req.body.verb_id) {
+            let ret = await findIrregular(req.body.verb_id, req.body.conjugation_name);
+            res.json(ret);
+        }
+        else {
+            res.status(400).send("Error: Must specify verb_id to get irregulars list");
+        }
     }
-    else {
-        res.status(400).send("Error: Must specify verb_id to get irregulars list");
+    catch(e) {
+        res.status(500).send("Internal server error");
     }
 });
 
