@@ -209,7 +209,7 @@
         console.log(verb);
         console.log(`${form} : ${useNegative} : ${usePolite} : ${usePast}`);
 
-        let url = BASE_URL + "irregulars";//?verb_id=" + verb.verb_id;
+        let url = BASE_URL + "irregulars";
         let formData = new FormData();
         formData.append("verb_id", verb.verb_id);
 
@@ -240,14 +240,20 @@
     function finishConjugation(verb, gramForm, irregularForms, useNegative, usePolite, usePast) {
         verb.conjugation_name = gramForm;
 
-        if(irregularForms[gramForm] && irregularForms[gramForm].verb_id && !usePolite) { 
+        if(irregularForms[gramForm] && irregularForms[gramForm].verb_id
+                    && !(gramForm == "volitional" && usePolite)
+                    && !(gramForm == "te" && useNegative)
+                    && !(gramForm == "command" && (usePolite || useNegative))) { 
+            
             verb = irregularForms[gramForm];
+            if(verb.is_ru_verb !== null) {
+                verb = toPlainVariant(verb, {}, useNegative, usePolite, usePast);
+            }
         }
         else {
             switch(gramForm) {
                 case 'plain':
-                    //Handled down at return statement
-                    break;
+                    return toPlainVariant(verb, irregularForms, useNegative, usePolite, usePast);
 
                 case 'te':
                     return toTeForm(verb, irregularForms, useNegative);
@@ -258,38 +264,32 @@
                 case 'volitional':
                     return toVolitionalForm(verb, irregularForms, usePolite);
                     
-                /////////////////////////// COMMAND ///////////////////////////  POSTPONED
+                case 'command':
+                    return toCommandForm(verb, irregularForms, useNegative, usePolite);
 
-                //Potential, causative, and passive can all be further conjugated using 'toPlainVariant' function
-                //There are no further irregulars once conjugated as they as just plain ru verbs, so delete all the irregulars
+                //Potential, causative, passive, unintended, and must do can all be further conjugated
+                //to past/polite/negative forms
                 case 'potential':
-                    verb = toPotentialForm(verb);
-                    irregularForms = {};
-                    break;
+                    return toPotentialForm(verb, useNegative, usePolite, usePast);
 
                 case 'causative':
-                    verb = toCausativeForm(verb);
-                    irregularForms = {};
-                    break;
+                    return toCausativeForm(verb, useNegative, usePolite, usePast);
 
                 case 'passive':
-                    verb = toPassiveForm(verb);
-                    irregularForms = {};
-                    break;
-                /////////////////////////// UNINTENDED ///////////////////////////
+                    return toPassiveForm(verb, useNegative, usePolite, usePast);
 
-                /////////////////////////// MUST DO /////////////////////////// POSTPONED
+                case 'unintended':
+                    return toUnintendedForm(verb, irregularForms, usePolite, usePast);
+
+                case 'must do':
+                    return toMustDoForm(verb, irregularForms, usePolite, usePast);
+
                 default:
                     console.log("ERROR: conjugation type "+gramForm+" not recognized");
                     return {error:"ERROR: conjugation type "+gramForm+" not recognized"};
             }
         }
-
-        if(verb.is_ru_verb === null) {
-            return verb;
-        } else {
-            return toPlainVariant(verb, irregularForms, useNegative, usePolite, usePast);
-        }
+        return verb;
     }
 
     /**
@@ -307,6 +307,7 @@
             verb.form = verb.form.slice(0,-1) + lastChar;
             verb.okurigana = verb.okurigana.slice(0,-1) + lastChar;
         }
+        verb.is_ru_verb = null;
         return verb;
     }
 
@@ -403,6 +404,10 @@
      * @returns {object} - conjugated verb
      */
     function toTeForm(verb, irregularForms, useNegative) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+
         // Negative
         if(useNegative) {
             verb = finishConjugation(verb, 'plain', irregularForms, true, false, false);
@@ -412,10 +417,6 @@
         }
 
         // Positive
-        if(verb.is_ru_verb === null) {
-            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
-        }
-
         let lastChar;
         if(verb.is_ru_verb) {
             lastChar = 'て';
@@ -466,9 +467,12 @@
     /**
      * Conjugates a verb from plain form to potential form
      * @param {object} verb - Japanese verb plus metadata
+     * @param {boolean} useNegative - should it be conjugated to negative form
+     * @param {boolean} usePolite - should it be conjugated to polite form
+     * @param {boolean} usePast - should it be conjugated to past form
      * @returns {object} - conjugated verb
      */
-    function toPotentialForm(verb) {
+    function toPotentialForm(verb, useNegative, usePolite, usePast) {
         if(verb.is_ru_verb === null) {
             return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
         }
@@ -484,15 +488,18 @@
         }
 
         verb.is_ru_verb = true;
-        return verb;
+        return toPlainVariant(verb, {}, useNegative, usePolite, usePast);
     }
 
     /**
      * Conjugates a verb from plain form to causative form
      * @param {object} verb - Japanese verb plus metadata
+     * @param {boolean} useNegative - should it be conjugated to negative form
+     * @param {boolean} usePolite - should it be conjugated to polite form
+     * @param {boolean} usePast - should it be conjugated to past form
      * @returns {object} - conjugated verb
      */
-    function toCausativeForm(verb) {
+    function toCausativeForm(verb, useNegative, usePolite, usePast) {
         if(verb.is_ru_verb === null) {
             return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
         }
@@ -508,15 +515,18 @@
         }
 
         verb.is_ru_verb = true;
-        return verb;
+        return toPlainVariant(verb, {}, useNegative, usePolite, usePast);
     }
 
     /**
      * Conjugates a verb from plain form to passive form
      * @param {object} verb - Japanese verb plus metadata
+     * @param {boolean} useNegative - should it be conjugated to negative form
+     * @param {boolean} usePolite - should it be conjugated to polite form
+     * @param {boolean} usePast - should it be conjugated to past form
      * @returns {object} - conjugated verb
      */
-    function toPassiveForm(verb) {
+    function toPassiveForm(verb, useNegative, usePolite, usePast) {
         if(verb.is_ru_verb === null) {
             return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
         }
@@ -532,9 +542,100 @@
         }
 
         verb.is_ru_verb = true;
-        return verb;
+        return toPlainVariant(verb, {}, useNegative, usePolite, usePast);
     }
 
+    /**
+     * Conjugates a verb from plain form to command form
+     * This method needs the irregulars list because sometimes it has to conjugate to stem/plain negative form first
+     * @param {object} verb - Japanese verb plus metadata
+     * @param {object} irregularForms - array with data on an irregular conjugations if applicable
+     * @param {boolean} useNegative - should it be conjugated to negative form
+     * @param {boolean} usePolite - should it be conjugated to polite form
+     * @returns {object} - conjugated verb
+     */
+    function toCommandForm(verb, irregularForms, useNegative, usePolite) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+        
+        if(usePolite) {
+            if(useNegative) {
+                verb = finishConjugation(verb, 'plain', irregularForms, true, false, false);
+                verb.form += "でください";
+                verb.okurigana += "でください";
+            }
+            else {
+                verb = finishConjugation(verb, 'stem', irregularForms, false, false, false);
+                verb.form += "なさい";
+                verb.okurigana += "なさい";
+            }
+        }
+        else {
+            if(useNegative) {
+                verb.form += "な";
+                verb.okurigana += "な";
+            }
+            else {
+                if(verb.is_ru_verb) {
+                    verb.form = verb.form.slice(0,-1) + "ろ";
+                    verb.okurigana = verb.okurigana.slice(0,-1) + "ろ";
+                }
+                else {
+                    let ending = charConversions.e[verb.form.slice(-1)];
+                    verb.form = verb.form.slice(0,-1) + ending;
+                    verb.okurigana = verb.okurigana.slice(0,-1) + ending;
+                }
+            }
+        }
+        verb.is_ru_verb = null;
+        return verb;
+    }
+    /**
+     * Conjugates a verb from plain form to unintended form
+     * This method needs the irregulars list because sometimes it has to conjugate to te form first
+     * @param {object} verb - Japanese verb plus metadata
+     * @param {object} irregularForms - array with data on an irregular conjugations if applicable
+     * @param {boolean} usePolite - should it be conjugated to polite form
+     * @param {boolean} usePast - should it be conjugated to past form
+     * @returns {object} - conjugated verb
+     */
+    function toUnintendedForm(verb, irregularForms, usePolite, usePast) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+
+        verb = finishConjugation(verb, 'te', irregularForms, false, false, false);
+        verb.form += "しまう";
+        verb.okurigana += "しまう";
+
+        verb.is_ru_verb = false; //still conjugatable but is an う verb
+        return toPlainVariant(verb, {}, false, usePolite, usePast);
+    }
+
+    /**
+     * Conjugates a verb from plain form to must do form
+     * This method needs the irregulars list because it has to conjugate to plain negative form first
+     * This form is not complete and must be conjugated to some negative form afterwards
+     * @param {object} verb - Japanese verb plus metadata
+     * @param {object} irregularForms - array with data on an irregular conjugations if applicable
+     * @param {boolean} usePolite - should it be conjugated to polite form
+     * @param {boolean} usePast - should it be conjugated to past form
+     * @returns {object} - conjugated verb
+     */
+    function toMustDoForm(verb, irregularForms, usePolite, usePast) {
+        if(verb.is_ru_verb === null) {
+            return {error:"ERROR: cannot conjugate '"+verb.form+"' to "+gramForm+" from an already conjugated verb"};
+        }
+
+        verb = finishConjugation(verb, 'plain', irregularForms, true, false, false);
+        verb.form = verb.form.slice(0,-1) + "ければなる";
+        verb.okurigana = verb.okurigana.slice(0,-1) + "ければなる";
+        verb.is_ru_verb = false;
+
+        return toPlainVariant(verb, {}, true, usePolite, usePast);
+    }
+    
     /**
      * Takes a verb and annotates its reading using the ruby tag if it contains kanji
      * @param {object} verb
@@ -542,7 +643,7 @@
      */
     function verbToHTML(verb) {
         if(verb.kanji_reading && verb.kanji_reading.length > 0) {
-            let kanjiOnly = verb.form.slice(0,-verb.okurigana.length);
+            let kanjiOnly = verb.form.slice(0,verb.form.length-verb.okurigana.length);
             return "<ruby>" + kanjiOnly + "<rt>" + verb.kanji_reading + "</rt></ruby>" + verb.okurigana;
         }
         else {
