@@ -7,6 +7,11 @@
     "use strict";
 
     let settings = ["plain","stem","negative","polite","volitional","te","past","command","potential","causative","passive","unintended","must do"];
+    let secondaryConjAllowed = {
+        "past" : ["plain","potential","causative","passive","unintended","must do"],
+        "polite" :["plain","potential","causative","passive","volitional","command","unintended","must do"],
+        "negative" :["plain","potential","causative","passive","te","command"]
+    };
     const BASE_URL = "http://localhost:8080/";
     let answer;
     let answerChecked = false;
@@ -64,7 +69,10 @@
         if(this.checked) {
             return;
         } else {
-            //TODO
+            //Past, negative, and polite forms are secondary conjugations, so another form must be active other than them
+            if(qsa("#settings-container input:checked").length - qsa("#checkbox_past:checked,#checkbox_polite:checked,#checkbox_negative:checked").length < 1) {
+                id("checkbox_plain").checked = true;
+            }
         }
     }
 
@@ -95,22 +103,51 @@
 
     /**
      * Looks at what settings checkboxes are selected and chooses a random conjugation
-     * @returns {string} conjugation type
+     * @returns {object} conjugation type plus parameters for conjugation function
      */
     function getRandomConjugation() {
         let activeConjugations = [];
-        
+        let secondaryConjugations = {"negative":false, "polite":false, "past":false};
+        //The parameters correspond to parameters 2-5 of the conjugate function (form, useNegative, usePolite, usePast)
+        let returnObj = {'conj_full_name': "", 'parameters': ["",false,false,false]};
+
         for(let i=0; i<settings.length; i++) {
             if(id("checkbox_"+settings[i]).checked) {
-                activeConjugations.push(settings[i]);
+                if(Object.keys(secondaryConjugations).includes(settings[i])) {
+                    secondaryConjugations[settings[i]] = true;
+                }
+                else {
+                    activeConjugations.push(settings[i]);
+                }
             }
         }
 
         if(activeConjugations.length == 0) {
-            return "plain";
+            returnObj.conj_full_name = "plain";
+            returnObj.parameters[0] = "plain";
+
+            return returnObj;
         }
         else {
-            return activeConjugations[Math.floor(Math.random() * activeConjugations.length)];
+            let base_conjugation = activeConjugations[Math.floor(Math.random() * activeConjugations.length)];
+            returnObj.conj_full_name = base_conjugation;
+            returnObj.parameters[0] = base_conjugation;
+            
+            if(secondaryConjugations.negative && secondaryConjAllowed.negative.includes(base_conjugation) && Math.random() < 0.3) {
+                returnObj.parameters[1] = true;
+                returnObj.conj_full_name = "negative " + returnObj.conj_full_name;
+            }
+
+            if(secondaryConjugations.polite && secondaryConjAllowed.polite.includes(base_conjugation) && Math.random() < 0.3) {
+                returnObj.parameters[2] = true;
+                returnObj.conj_full_name = "polite " + returnObj.conj_full_name;
+            }
+            
+            if(secondaryConjugations.past && secondaryConjAllowed.past.includes(base_conjugation) && Math.random() < 0.3) {
+                returnObj.parameters[3] = true;
+                returnObj.conj_full_name = "past " + returnObj.conj_full_name;
+            }
+            return returnObj;
         }
     }
 
@@ -140,8 +177,8 @@
         id("jp-word-meaning").innerText = verb.meaning;
         
         let conjugation = getRandomConjugation();
-        id("jp-conjugation-type").innerText = "TO " + conjugation.toUpperCase() + " FORM";
-        conjugate(verb, conjugation, false, false, false);
+        id("jp-conjugation-type").innerText = "TO " + conjugation.conj_full_name.toUpperCase() + " FORM";
+        conjugate(verb, ...(conjugation.parameters));
     }
 
     function checkAnswer() {
@@ -170,6 +207,7 @@
      */
     function conjugate(verb, form, useNegative, usePolite, usePast) {
         console.log(verb);
+        console.log(`${form} : ${useNegative} : ${usePolite} : ${usePast}`);
 
         let url = BASE_URL + "irregulars";//?verb_id=" + verb.verb_id;
         let formData = new FormData();
@@ -203,40 +241,55 @@
         verb.conjugation_name = gramForm;
 
         if(irregularForms[gramForm] && irregularForms[gramForm].verb_id && !usePolite) { 
-            return irregularForms[gramForm];
+            verb = irregularForms[gramForm];
+        }
+        else {
+            switch(gramForm) {
+                case 'plain':
+                    //Handled down at return statement
+                    break;
+
+                case 'te':
+                    return toTeForm(verb, irregularForms, useNegative);
+
+                case 'stem':
+                    return toStemForm(verb);
+
+                case 'volitional':
+                    return toVolitionalForm(verb, irregularForms, usePolite);
+                    
+                /////////////////////////// COMMAND ///////////////////////////  POSTPONED
+
+                //Potential, causative, and passive can all be further conjugated using 'toPlainVariant' function
+                //There are no further irregulars once conjugated as they as just plain ru verbs, so delete all the irregulars
+                case 'potential':
+                    verb = toPotentialForm(verb);
+                    irregularForms = {};
+                    break;
+
+                case 'causative':
+                    verb = toCausativeForm(verb);
+                    irregularForms = {};
+                    break;
+
+                case 'passive':
+                    verb = toPassiveForm(verb);
+                    irregularForms = {};
+                    break;
+                /////////////////////////// UNINTENDED ///////////////////////////
+
+                /////////////////////////// MUST DO /////////////////////////// POSTPONED
+                default:
+                    console.log("ERROR: conjugation type "+gramForm+" not recognized");
+                    return {error:"ERROR: conjugation type "+gramForm+" not recognized"};
+            }
         }
 
-        switch(gramForm) {
-            case 'plain':
-                return toPlainVariant(verb, irregularForms, useNegative, usePolite, usePast);
-
-            case 'te':
-                return toTeForm(verb, irregularForms, useNegative);
-
-            case 'stem':
-                return toStemForm(verb);
-
-            case 'volitional':
-                return toVolitionalForm(verb, irregularForms, usePolite);
-                //break;
-            /////////////////////////// COMMAND ///////////////////////////  POSTPONED
-
-            case 'potential':
-                return toPotentialForm(verb);
-
-            case 'causative':
-                return toCausativeForm(verb);
-
-            case 'passive':
-                return toPassiveForm(verb);
-            /////////////////////////// UNINTENDED ///////////////////////////
-
-            /////////////////////////// MUST DO /////////////////////////// POSTPONED
-            default:
-                console.log("ERROR: conjugation type "+gramForm+" not recognized");
-                return {error:"ERROR: conjugation type "+gramForm+" not recognized"};
+        if(verb.is_ru_verb === null) {
+            return verb;
+        } else {
+            return toPlainVariant(verb, irregularForms, useNegative, usePolite, usePast);
         }
-        return verb;
     }
 
     /**
