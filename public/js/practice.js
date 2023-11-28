@@ -6,7 +6,7 @@
 (function () {
     "use strict";
 
-    let settings = ["plain","stem","negative","polite","volitional","te","past","command","potential","causative","passive","unintended","must do"];
+    let settings = ["plain","stem","volitional","te","command","potential","causative","passive","unintended","must do","negative","polite","past"];
     let secondaryConjAllowed = {
         "past" : ["plain","potential","causative","passive","unintended","must do"],
         "polite" :["plain","potential","causative","passive","volitional","command","unintended","must do"],
@@ -40,6 +40,9 @@
 
     //Run setup on page load
     function init() {
+        if(!window.localStorage.getItem('enabled_settings'))
+            window.localStorage.setItem('enabled_settings',":plain:");
+
         generateSettings();
         getRandomVerb();
         id("submitConjugation").addEventListener("click",submitButtonHandler);
@@ -67,14 +70,21 @@
      * Ensures that at least one conjugation type is selected at all times
      */
     function checkboxEventHandler() {
+        let enabled_settings = window.localStorage.getItem('enabled_settings');
+        let setting = this.id.substring(9);
+
         if(this.checked) {
-            return;
+            enabled_settings += ":" + setting + ":";
         } else {
+            enabled_settings = enabled_settings.replace(":"+setting+":","");
             //Past, negative, and polite forms are secondary conjugations, so another form must be active other than them
             if(qsa("#settings-container input:checked").length - qsa("#checkbox_past:checked,#checkbox_polite:checked,#checkbox_negative:checked").length < 1) {
                 id("checkbox_plain").checked = true;
+                enabled_settings += ":plain:";
             }
         }
+
+        window.localStorage.setItem('enabled_settings',enabled_settings);
     }
 
     /**
@@ -82,6 +92,10 @@
      */
     function generateSettings() {
         let settingsContainer = id("settings-container");
+        let enabled_settings = window.localStorage.getItem("enabled_settings");
+        let auxiliaryHeading = gen("h5");
+        auxiliaryHeading.innerText = "Compound Conjugations";
+        
         settings.forEach((setting) => {
             let check = gen("input");
             let label = gen("label");
@@ -92,8 +106,12 @@
             label.innerHTML = setting.toUpperCase();
             label.htmlFor = check.id;
 
-            if(setting == "plain") {
+            if(enabled_settings.includes(":"+setting+":")) {
                 check.checked = true;
+            }
+
+            if(setting == "negative") {
+                settingsContainer.appendChild(auxiliaryHeading);
             }
 
             settingsContainer.appendChild(check);
