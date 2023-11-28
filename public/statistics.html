@@ -10,13 +10,13 @@
 <body>
     <main>
         <section>
-            <div class="container main-content-box">
+            <div class="container main-content-box margined">
                 <h3>Statistics</h3>
                 <p>Total questions answered: <span id="stat_total_answered">0</span></p>
                 <p>Questions answered correctly: <span id="stat_total_correct">0</span></p>
                 <p>Accuracy: <span id="stat_accuracy">0</span></p>
                 <p>Accuracy by grammar type:</p>
-                <div id="graph-container">INSERT GRAPH HERE</div>
+                <canvas id="accuracy-chart"></canvas>
             </div>
         </section>
     </main>
@@ -27,6 +27,7 @@
     </footer>
     <script src="js/jquery-3.7.1.min.js"></script>
     <script src="js/insertNavbar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/statistics.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 </body>

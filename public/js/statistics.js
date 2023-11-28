@@ -12,6 +12,15 @@
      * Setup function called when page loads
      */
     function init() {
+        updateAccuracyNumbers();
+        setupGraph();
+    }
+
+
+    /**
+     * Pulls data from local storage to populate accuracy numbers at top of page
+     */
+    function updateAccuracyNumbers() {
         let total = getValueFromLocalStorage('total_answered');
         let correct = getValueFromLocalStorage('total_correct');
         id('stat_total_answered').innerText = total;
@@ -35,6 +44,56 @@
             return value;
         else
             return 0;
+    }
+
+    /**
+     * Sets up and displays graph using chart.js
+     */
+    function setupGraph() {
+        let chartElem = id("accuracy-chart");
+        let conjugations = ["plain","stem","volitional","te","command","potential","causative","passive","unintended","must do"];
+        let timesCorrect = [];
+        let timesIncorrect = [];
+
+        conjugations.forEach(conj => {
+            timesCorrect.push(getValueFromLocalStorage(conj + "_correct"));
+            timesIncorrect.push(getValueFromLocalStorage(conj + "_incorrect"));
+        });
+        
+        Chart.defaults.color = '#e6daca';
+
+        new Chart(chartElem, {
+            type: 'bar',
+            data: {
+              labels: conjugations.map(conj => conj.replace(/\b\w/g, (c) => c.toUpperCase())),
+              datasets: [{
+                  label: 'Times Correct',
+                  data: timesCorrect,
+                  borderWidth: 1,
+                  stack: 0,
+                  borderColor: '#000000',
+                  backgroundColor: '#acb18f'   // Reilly 1d1f77/other option:acb18f
+                },//eec886
+                {
+                  label: 'Times Incorrect',
+                  data: timesIncorrect,
+                  borderWidth: 1,
+                  stack: 0,
+                  borderColor: '#000000',
+                  backgroundColor: '#fd9e6f'  //Reilly 8e1308/other option:fd9e6f
+                }]//98a191
+            },
+            options: {
+              animation: false,
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  stacked: true
+                }
+              }
+            }
+          });
     }
 
     /**

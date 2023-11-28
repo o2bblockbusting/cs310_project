@@ -11,7 +11,7 @@ https://coolors.co/c2f970-44344f-564d80-98a6d4-d3fcd5
     --color_2: #564D80;
     --color_3: #44344F;
 }  */
-:root {
+/*:root {
     --light_color: #e25f3e;
     --mid_color: #902626;
     --dark_color: #4d0606;
@@ -19,7 +19,19 @@ https://coolors.co/c2f970-44344f-564d80-98a6d4-d3fcd5
     --color_2: #9b81f8;
     --color_2_5: #846ed4;
     --color_3: indigo;
-}  
+} */ 
+
+:root {
+    --light_color: #e25f3e;
+    --mid_color: #e70000;
+    --dark_color: #dddddd;
+    --color_1: #212121;
+    --color_2: #404040;
+    --color_2_5: #846ed4;
+    --color_3: #000000;
+    --navbar_color: #dddddd;
+    --navbar_color_active: #846ed4;
+}
 
 body,html {
     /* Use flex layout to push footer to bottom of page */
@@ -81,11 +93,21 @@ a:hover {
 
 .navbar-brand {
     background-color: var(--color_2);
+    color: var(--navbar_color);
     padding: 5px;
 }
 
 .nav-item {
     background-color: var(--color_2);
+    color: var(--navbar_color);
+}
+
+.nav-link {
+    color: var(--navbar_color);
+}
+
+.navbar-nav .nav-link.active, .navbar-nav .nav-link.show {
+    color: var(--navbar_color_active);
 }
 
 
@@ -150,4 +172,12 @@ input[type="checkbox"] {
 
 .hidden {
     display: none;
+}
+
+.margined {
+    margin: 20px;
+}
+
+.navbar {
+    color: #FFFF00;
 }

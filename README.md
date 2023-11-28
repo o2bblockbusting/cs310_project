@@ -21,7 +21,7 @@ Project for CS310 Web Development. A website that helps a user practice their Ja
 
 * Install Node JS on system
 * Clone this repository to your computer
-* Open command prompt to the folder of the cloned repository and install the required node packages by running "npm install X" for each package, where X is the package name
+* Open command prompt to the folder of the cloned repository and install the required node packages by running "npm install"
 * To start the server, type "npx nodemon" in the open cmd prompt terminal
 * Open your browser to [http://localhost:8080/home.html]([http://localhost:8080/home.html]()) to see the working site
 
