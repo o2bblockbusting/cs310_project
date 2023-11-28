@@ -15,6 +15,7 @@
     const BASE_URL = "http://localhost:8080/";
     let answer;
     let answerChecked = false;
+    let currentConjugation = "";
 
 
     const charConversions = {
@@ -125,8 +126,6 @@
         if(activeConjugations.length == 0) {
             returnObj.conj_full_name = "plain";
             returnObj.parameters[0] = "plain";
-
-            return returnObj;
         }
         else {
             let base_conjugation = activeConjugations[Math.floor(Math.random() * activeConjugations.length)];
@@ -147,8 +146,9 @@
                 returnObj.parameters[3] = true;
                 returnObj.conj_full_name = "past " + returnObj.conj_full_name;
             }
-            return returnObj;
         }
+        currentConjugation = returnObj.parameters[0];
+        return returnObj;
     }
 
     /**
@@ -188,11 +188,16 @@
         if(userAnswer == answer.form || userAnswer == (answer.kanji_reading + answer.okurigana)) {
             correctStr = 'correct';
         }
+
         id("answer-result").innerHTML = "<span class='"+correctStr+"'>"+correctStr.toUpperCase()+"</span><BR/>The correct answer is " + verbToHTML(answer);
         id("answer-result").classList.remove("hidden");
 
         id("submitConjugation").innerText = "Next";
-        id("submitConjugation")
+
+        //Update local storage statistics
+        incLocalStorageVal(currentConjugation + '_' + correctStr,1);
+        incLocalStorageVal('total_answered',1);
+        incLocalStorageVal('total_'+correctStr,1);
     }
 
     /**
@@ -649,6 +654,22 @@
         else {
             return verb.form;
         }
+    }
+
+    /**
+     * Adds addend the value of an item in local storage with the given key, then stores the new value back in local storage
+     * @param {string} key local storage key
+     * @param {number} addend amount to increase by
+     * @returns {number} new value in storage
+     */
+    function incLocalStorageVal(key, addend) {
+        let storedNum = parseInt(window.localStorage.getItem(key));
+        if(!storedNum)
+            storedNum = 0;
+
+        storedNum += addend;
+        window.localStorage.setItem(key,storedNum);
+        return storedNum;
     }
 
     // MODULE GLOBAL FUNCTIONS
