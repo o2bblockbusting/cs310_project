@@ -21,7 +21,6 @@
         setupGraph();
     }
 
-
     /**
      * Pulls data from local storage to populate accuracy numbers at top of page
      */
@@ -30,6 +29,7 @@
         let correct = getValueFromLocalStorage('total_correct');
         id('stat_total_answered').innerText = total;
         id('stat_total_correct').innerText = correct;
+
         if(total) {
             id('stat_accuracy').innerText = (100 * correct / total).toFixed(2) + '%';
         }
@@ -60,13 +60,13 @@
         let timesCorrect = [];
         let timesIncorrect = [];
 
+        //Get chart data from local storage
         conjugations.forEach(conj => {
             timesCorrect.push(getValueFromLocalStorage(conj + "_correct"));
             timesIncorrect.push(getValueFromLocalStorage(conj + "_incorrect"));
         });
-        
-        Chart.defaults.color = '#e6daca';
-
+    
+        //Create the chart with all the correct options
         conjChart = new Chart(chartElem, {
             type: 'bar',
             data: {

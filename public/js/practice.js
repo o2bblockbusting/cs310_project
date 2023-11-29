@@ -38,7 +38,9 @@
 
     window.addEventListener("load",init);
 
-    //Run setup on page load
+    /**
+     * Runs setup on page load
+     */
     function init() {
         if(!window.localStorage.getItem('enabled_settings'))
             window.localStorage.setItem('enabled_settings',":plain:");
@@ -51,14 +53,20 @@
         });
     }
 
-
+    /**
+     * Called when submit button is clicked
+     * Either submits and checks the users answer
+     *  or moves to the next question by generating a new one
+     */
     function submitButtonHandler() {
+        //Create new question
         if(answerChecked) {
             id("answer-result").classList.add("hidden");
             id("submitConjugation").innerText = "Submit";
             id("user-conjugation").value = "";
             getRandomVerb();
         }
+        //Check user input
         else {
             checkAnswer();
         }
@@ -68,6 +76,7 @@
     /**
      * Called whenever the state of any checkbox is changed
      * Ensures that at least one conjugation type is selected at all times
+     * Saves enabled settings into local storage
      */
     function checkboxEventHandler() {
         let enabled_settings = window.localStorage.getItem('enabled_settings');
@@ -130,6 +139,8 @@
         //The parameters correspond to parameters 2-5 of the conjugate function (form, useNegative, usePolite, usePast)
         let returnObj = {'conj_full_name': "", 'parameters': ["",false,false,false]};
 
+        //Find what conjugations are active and put them in the activeConjugations array
+        //Secondary conjugations are enabled if checked
         for(let i=0; i<settings.length; i++) {
             if(id("checkbox_"+settings[i]).checked) {
                 if(Object.keys(secondaryConjugations).includes(settings[i])) {
@@ -141,15 +152,18 @@
             }
         }
 
+        //Default conjugation is plain, however this code should never run as a conjugation should always be selected
         if(activeConjugations.length == 0) {
             returnObj.conj_full_name = "plain";
             returnObj.parameters[0] = "plain";
         }
         else {
+            //Choose random conjugation and save its name
             let base_conjugation = activeConjugations[Math.floor(Math.random() * activeConjugations.length)];
             returnObj.conj_full_name = base_conjugation;
             returnObj.parameters[0] = base_conjugation;
             
+            //Enable negative, polite, and past randomly if they are permitted to be used with the base_conjugation
             if(secondaryConjugations.negative && secondaryConjAllowed.negative.includes(base_conjugation) && Math.random() < 0.3) {
                 returnObj.parameters[1] = true;
                 returnObj.conj_full_name = "negative " + returnObj.conj_full_name;
@@ -199,6 +213,11 @@
         conjugate(verb, ...(conjugation.parameters));
     }
 
+    /**
+     * Checks to see if the user's answer matches the correct answer
+     * Displays 'correct' or 'incorrect' alongside the correct answer
+     * Also updates accuracy statistics
+     */
     function checkAnswer() {
         let userAnswer = id('user-conjugation').value;
         let correctStr = "incorrect";
@@ -229,9 +248,7 @@
      * @param {boolean} usePast - should it be conjugated to past tense
      */
     function conjugate(verb, form, useNegative, usePolite, usePast) {
-        console.log(verb);
-        console.log(`${form} : ${useNegative} : ${usePolite} : ${usePast}`);
-
+        //Create url and add params to a formdata object
         let url = BASE_URL + "irregulars";
         let formData = new FormData();
         formData.append("verb_id", verb.verb_id);
@@ -241,7 +258,6 @@
             .then((response) => response.json())
             .then((resp) => {
                 answer = finishConjugation(verb, form, resp, useNegative, usePolite, usePast);
-                console.log(answer);
                 return resp;
             })
             .catch(handleError);
@@ -291,7 +307,7 @@
                     return toCommandForm(verb, irregularForms, useNegative, usePolite);
 
                 //Potential, causative, passive, unintended, and must do can all be further conjugated
-                //to past/polite/negative forms
+                //to past/polite/negative forms and thus require those parameters
                 case 'potential':
                     return toPotentialForm(verb, useNegative, usePolite, usePast);
 
@@ -308,7 +324,7 @@
                     return toMustDoForm(verb, irregularForms, usePolite, usePast);
 
                 default:
-                    console.log("ERROR: conjugation type "+gramForm+" not recognized");
+                    //console.log("ERROR: conjugation type "+gramForm+" not recognized");
                     return {error:"ERROR: conjugation type "+gramForm+" not recognized"};
             }
         }
@@ -719,7 +735,7 @@
             qsa(".error_msg").forEach(msg => msg.remove());
         },3000);
 
-        console.log(error.message);
+        //console.log(error.message);
     }
 
     /**

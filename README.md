@@ -8,6 +8,7 @@ Project for CS310 Web Development. A website that helps a user practice their Ja
 * JQuery 3.7.1
 * [coolors.co](https://coolors.co/)
 * Node JS
+* Chart.js
 
 ### Required Node Packages
 
