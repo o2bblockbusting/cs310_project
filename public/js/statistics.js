@@ -7,11 +7,16 @@
     "use strict";
 
     window.addEventListener("load",init);
+    let conjChart = null;
+    let chartTextColor = '#e6daca';
 
     /**
      * Setup function called when page loads
      */
     function init() {
+        id("color-scheme-checkbox").addEventListener("change",e => { switchColorScheme(e); });
+        chartTextColor = (id("color-scheme-checkbox").checked) ? '#e6daca' : '#4d0606';
+
         updateAccuracyNumbers();
         setupGraph();
     }
@@ -62,38 +67,71 @@
         
         Chart.defaults.color = '#e6daca';
 
-        new Chart(chartElem, {
+        conjChart = new Chart(chartElem, {
             type: 'bar',
             data: {
-              labels: conjugations.map(conj => conj.replace(/\b\w/g, (c) => c.toUpperCase())),
-              datasets: [{
-                  label: 'Times Correct',
-                  data: timesCorrect,
-                  borderWidth: 1,
-                  stack: 0,
-                  borderColor: '#000000',
-                  backgroundColor: '#acb18f'   // Reilly 1d1f77/other option:acb18f
-                },//eec886
+                labels: conjugations.map(conj => conj.replace(/\b\w/g, (c) => c.toUpperCase())),
+                datasets: [{
+                    label: 'Times Correct',
+                    data: timesCorrect,
+                    borderWidth: 1,
+                    stack: 0,
+                    borderColor: '#000000',
+                    backgroundColor: '#acb18f'   // option1: 1d1f77 // option2:acb18f // option3:eec886
+                },
                 {
-                  label: 'Times Incorrect',
-                  data: timesIncorrect,
-                  borderWidth: 1,
-                  stack: 0,
-                  borderColor: '#000000',
-                  backgroundColor: '#fd9e6f'  //Reilly 8e1308/other option:fd9e6f
-                }]//98a191
+                    label: 'Times Incorrect',
+                    data: timesIncorrect,
+                    borderWidth: 1,
+                    stack: 0,
+                    borderColor: '#000000',
+                    backgroundColor: '#fd9e6f'  // option1: 8e1308 // option2:fd9e6f // option3:98a191
+                }]
             },
             options: {
-              animation: false,
-              responsive: true,
-              scales: {
-                y: {
-                  beginAtZero: true,
-                  stacked: true
+                animation: false,
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: chartTextColor
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            color: chartTextColor
+                        },
+                        beginAtZero: true,
+                        stacked: true
+                    },
+                    x: {
+                        ticks: {
+                            color: chartTextColor
+                        }
+                    }
                 }
-              }
             }
-          });
+        });
+        
+    }
+
+    /**
+     * Called when the color scheme checkbox's value changes
+     * Updates the colors of the chart so they match the color scheme
+     */
+    function switchColorScheme(e) { 
+        if (e.target.checked) {
+            chartTextColor = '#e6daca';
+        }
+        else {
+            chartTextColor = '#4d0606';
+        }
+        conjChart.options.plugins.legend.labels.color = chartTextColor;
+        conjChart.options.scales.x.ticks.color = chartTextColor;
+        conjChart.options.scales.y.ticks.color = chartTextColor;
+        conjChart.update();
     }
 
     /**

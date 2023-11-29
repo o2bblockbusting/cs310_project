@@ -1,5 +1,6 @@
 /* INSERTNAVBAR.JS
  * This file contains the html for the header of each page, which it builds and adds to each page.
+ * Also contains code for site color mode switching
 */
 
 
@@ -22,10 +23,11 @@
                     <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
                 </ul>
             </div>
+            <input type='button' id='color-scheme-selector' value="Light Mode" class="lightmode">
+            <input type='checkbox' id='color-scheme-checkbox' class='hidden'>
         </div>
     </nav>
     </header>`
-
     
     window.addEventListener("load",function() {
         //Add header/navbar to body
@@ -38,6 +40,49 @@
                 this.setAttribute("aria-current","page");
             }
         });
+
+        $("#color-scheme-selector").click(switchColorScheme);
+
+        if(window.localStorage.getItem("theme") == "dark") {
+            switchColorScheme();
+        }
     });
+
+    /**
+     * Called when the color scheme switcher button is clicked
+     * Switches the color data-theme, which updates the CSS
+     */
+    function switchColorScheme() {
+        let modeCheckbox = document.getElementById("color-scheme-checkbox");
+        let modeChangeButton = document.getElementById("color-scheme-selector");
+
+        if (modeChangeButton.classList.contains("lightmode")) {
+            //Update CSS theme
+            document.documentElement.setAttribute('data-theme', 'dark');
+            
+            //Change button CSS
+            modeChangeButton.classList.remove("lightmode");
+            modeChangeButton.classList.add("darkmode");
+            modeChangeButton.value = "Dark Mode";
+            
+            modeCheckbox.checked = true;
+            window.localStorage.setItem("theme","dark");
+        }
+        else {
+            //Update CSS theme
+            document.documentElement.setAttribute('data-theme', 'light');
+
+            //Change button CSS
+            modeChangeButton.classList.remove("darkmode");
+            modeChangeButton.classList.add("lightmode");
+            modeChangeButton.value = "Light Mode";
+            
+            modeCheckbox.checked = false;
+            window.localStorage.setItem("theme","light");
+        }
+        //Throw event for statistics page so it can change the graph text color
+        modeCheckbox.dispatchEvent(new Event("change"));
+    }
+    
 
 })();
