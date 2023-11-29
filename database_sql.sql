@@ -53,8 +53,31 @@ VALUES
     ('返す','かえ','す',0,'to return something'),
     ('買う','か','う',0,'to buy'),
     ('泳ぐ','およ','ぐ',0,'to swim'),
-    ('寝る','ね','る',1,'to sleep');
- --    ('','','',0),
+    ('寝る','ね','る',1,'to sleep'),
+    ('教える','おし','える',1,'to teach'),
+    ('殺す','ころ','す',0,'to kill'),
+    ('学ぶ','まな','ぶ',0,'to learn'),
+    ('始める','はじ','める',1,'to start'),
+    ('終わる','お','わる',0,'to end'),
+    ('開ける','あ','ける',1,'to open'),
+    ('閉める','し','める',1,'to close'),
+    ('着く','つ','く',0,'to arrive'),
+    ('着る','き','る',1,'to wear'),
+    ('殴る','なぐ','る',0,'to punch'),
+    ('気づく','き','づく',0,'to notice'),
+    ('貸す','か','す',0,'to lend'),
+    ('続ける','つづ','ける',1,'to continue'),
+    ('歩く','ある','く',0,'to walk'),
+    ('走る','はし','る',0,'to run'),
+    ('戻る','もど','る',0,'to return'),
+    ('変える','か','える',1,'to change'),
+    ('書く','か','く',0,'to write'),
+    ('覚える','おぼ','える',1,'to memorize'),
+    ('出す','だ','す',0,'to take out'),
+    ('誘う','さそ','う',0,'to invite'),
+    ('遊ぶ','あそ','ぶ',0,'to play'),
+    ('向く','む','く',0,'to turn toward');
+ --    ('','','',0,'to '),
 
 
 INSERT INTO irregulars(verb_id, conjugation_name, form, kanji_reading, okurigana, is_ru_verb)
